@@ -17,6 +17,10 @@ jobs:
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          - name: Remove old know_hosts key
+            run: ssh-keygen -f "$HOME/.ssh/know_hosts" -R github.com
+          - name: Add github key to known hosts
+            run: ssh-keyscan github >> $HOME/.ssh/know_hosts
           - name: Run full test
             env:
               GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
