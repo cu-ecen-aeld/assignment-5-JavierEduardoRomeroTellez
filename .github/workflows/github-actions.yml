@@ -11,14 +11,23 @@ jobs:
         runs-on: self-hosted
         timeout-minutes: 120
         steps:
+          
           - uses: actions/checkout@v2
           - name: Checkout submodules
             run: git submodule update --init --recursive
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          - name:
-            run: echo "${{ secrets.SSH_PRIVATE_KEY }}"
+          - name: Remove old github.com key from known_hosts
+            run: |
+              ssh-keygen -f "/root/.ssh/known_hosts" -R "github.com" || true
+              ssh-keygen -f "/github/home/.ssh/known_hosts" -R "github.com" || true
+
+          - name: Add Github's current host key to known_hosts
+            run: |
+              ssh-keyscan -H github.com >> /root/.ssh/known_hosts
+              ssh-keyscan -H github.com >> /github/home/.ssh/known_hosts
+
           - name: Run full test
             env:
               GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
